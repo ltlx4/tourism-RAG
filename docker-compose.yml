@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      RAG_LLM_BASE_URL: http://host.docker.internal:11434
+      RAG_EMBEDDING_PROVIDER: hash
+    volumes:
+      - rag-index:/app/data/index
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  rag-index:
+

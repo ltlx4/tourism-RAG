@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DXB Guide</title>
+  <style>
+    :root { --ink:#102a2e; --sand:#f4ead7; --gold:#d69b35; --sea:#087f8c; --paper:#fffdf8; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--sand); font:16px/1.55 system-ui,sans-serif; }
+    main { width:min(900px,92vw); margin:40px auto; }
+    header { margin-bottom:24px; }
+    h1 { font:700 clamp(2.4rem,8vw,5rem)/.9 Georgia,serif; margin:0; letter-spacing:-.05em; }
+    header p { color:#48666a; max-width:620px; }
+    #chat { min-height:380px; background:var(--paper); border:1px solid #dcc9a4; border-radius:18px;
+      padding:22px; box-shadow:0 15px 50px #70592918; }
+    .message { margin:0 0 18px; padding:14px 16px; border-radius:12px; white-space:pre-wrap; }
+    .user { margin-left:18%; background:#d8eef0; }
+    .assistant { margin-right:10%; background:#f4ecdf; }
+    .sources { font-size:.88rem; margin:-10px 10% 22px 16px; color:#496367; }
+    .sources a { color:var(--sea); }
+    form { display:flex; gap:10px; margin-top:14px; }
+    input { flex:1; padding:15px 17px; border:1px solid #bda77e; border-radius:12px; font:inherit; }
+    button { border:0; border-radius:12px; padding:0 22px; color:white; background:var(--sea);
+      font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.55; }
+    .suggestions { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
+    .suggestions button { background:transparent; color:var(--ink); border:1px solid #bda77e;
+      padding:8px 12px; font-weight:500; }
+    footer { color:#607477; font-size:.82rem; margin-top:14px; }
+  </style>
+</head>
+<body>
+<main>
+  <header><h1>DXB Guide</h1><p>A grounded Dubai trip planner running locally with hybrid retrieval and Ollama.</p></header>
+  <div class="suggestions">
+    <button data-q="Plan a culture-focused day around Old Dubai">Old Dubai day</button>
+    <button data-q="What is the easiest way to get around without a car?">Getting around</button>
+    <button data-q="Suggest a family-friendly two-day itinerary">Family itinerary</button>
+  </div>
+  <section id="chat"><div class="message assistant">Marhaba. Ask me to plan a Dubai day, compare areas, or explain transport.</div></section>
+  <form id="form">
+    <input id="question" aria-label="Question" placeholder="What should I do near Dubai Creek?" autocomplete="off">
+    <button id="send">Ask</button>
+  </form>
+  <footer>Answers are grounded in the bundled guide. Verify changing details with official sources.</footer>
+</main>
+<script>
+const chat=document.querySelector("#chat"), form=document.querySelector("#form");
+const input=document.querySelector("#question"), send=document.querySelector("#send");
+const history=[];
+function add(text,role){const el=document.createElement("div");el.className=`message ${role}`;el.textContent=text;chat.append(el);return el}
+async function ask(question){
+  add(question,"user"); input.value=""; send.disabled=true; const pending=add("Planning...","assistant");
+  try {
+    const response=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({question,history})});
+    const data=await response.json(); if(!response.ok) throw new Error(data.detail||"Request failed");
+    pending.textContent=data.answer;
+    const sources=document.createElement("div");sources.className="sources";
+    sources.innerHTML="<strong>Sources</strong><br>"+data.sources.map(s =>
+      s.url?`[${s.id}] <a href="${s.url}" target="_blank" rel="noreferrer">${s.title}</a>`:`[${s.id}] ${s.title}`).join("<br>");
+    chat.append(sources); history.push({role:"user",content:question},{role:"assistant",content:data.answer});
+    while(history.length>6) history.shift();
+  } catch(error){pending.textContent=`Could not answer: ${error.message}`;}
+  finally{send.disabled=false;input.focus();}
+}
+form.addEventListener("submit",e=>{e.preventDefault();if(input.value.trim())ask(input.value.trim())});
+document.querySelectorAll("[data-q]").forEach(button=>button.addEventListener("click",()=>ask(button.dataset.q)));
+</script>
+</body>
+</html>
