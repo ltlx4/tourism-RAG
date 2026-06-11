@@ -37,9 +37,10 @@ class LLMProvider(ABC):
 
 
 class OllamaLLM(LLMProvider):
-    def __init__(self, base_url: str, model: str):
+    def __init__(self, base_url: str, model: str, max_tokens: int = 450):
         self.base_url = base_url
         self.model = model
+        self.max_tokens = max_tokens
 
     def chat(self, messages: list[dict[str, str]], temperature: float = 0.2) -> str:
         data = _post_json(
@@ -49,28 +50,39 @@ class OllamaLLM(LLMProvider):
                 "messages": messages,
                 "stream": False,
                 "think": False,
-                "options": {"temperature": temperature},
+                "options": {"temperature": temperature, "num_predict": self.max_tokens},
             },
         )
         return data["message"]["content"].strip()
 
 
 class OpenAICompatibleLLM(LLMProvider):
-    def __init__(self, base_url: str, model: str, api_key: str):
+    def __init__(self, base_url: str, model: str, api_key: str, max_tokens: int = 450):
         self.base_url = base_url
         self.model = model
         self.api_key = api_key
+        self.max_tokens = max_tokens
 
     def chat(self, messages: list[dict[str, str]], temperature: float = 0.2) -> str:
         data = _post_json(
             f"{self.base_url}/v1/chat/completions",
-            {"model": self.model, "messages": messages, "temperature": temperature},
+            {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": self.max_tokens,
+            },
             {"Authorization": f"Bearer {self.api_key}"},
         )
         return data["choices"][0]["message"]["content"].strip()
 
 
 class EmbeddingProvider(ABC):
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        raise NotImplementedError
+
     @abstractmethod
     def embed(self, texts: list[str]) -> list[list[float]]:
         raise NotImplementedError
@@ -81,6 +93,10 @@ class HashEmbedding(EmbeddingProvider):
 
     def __init__(self, dimensions: int = 384):
         self.dimensions = dimensions
+
+    @property
+    def name(self) -> str:
+        return f"hash-{self.dimensions}"
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         return [self._embed_one(text) for text in texts]
@@ -104,6 +120,10 @@ class OllamaEmbedding(EmbeddingProvider):
         self.base_url = base_url
         self.model = model
 
+    @property
+    def name(self) -> str:
+        return f"ollama:{self.model}"
+
     def embed(self, texts: list[str]) -> list[list[float]]:
         data = _post_json(
             f"{self.base_url}/api/embed",
@@ -118,6 +138,10 @@ class OpenAIEmbedding(EmbeddingProvider):
         self.model = model
         self.api_key = api_key
 
+    @property
+    def name(self) -> str:
+        return f"openai:{self.model}"
+
     def embed(self, texts: list[str]) -> list[list[float]]:
         data = _post_json(
             f"{self.base_url}/v1/embeddings",
@@ -129,10 +153,13 @@ class OpenAIEmbedding(EmbeddingProvider):
 
 def build_llm(settings: Settings) -> LLMProvider:
     if settings.llm_provider == "ollama":
-        return OllamaLLM(settings.llm_base_url, settings.llm_model)
+        return OllamaLLM(settings.llm_base_url, settings.llm_model, settings.max_tokens)
     if settings.llm_provider in {"openai", "openai-compatible"}:
         return OpenAICompatibleLLM(
-            settings.llm_base_url, settings.llm_model, settings.llm_api_key
+            settings.llm_base_url,
+            settings.llm_model,
+            settings.llm_api_key,
+            settings.max_tokens,
         )
     raise ValueError(f"Unsupported LLM provider: {settings.llm_provider}")
 
@@ -150,4 +177,3 @@ def build_embeddings(settings: Settings) -> EmbeddingProvider:
             settings.embedding_api_key,
         )
     raise ValueError(f"Unsupported embedding provider: {settings.embedding_provider}")
-

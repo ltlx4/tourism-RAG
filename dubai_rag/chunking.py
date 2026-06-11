@@ -6,7 +6,7 @@ import re
 from .models import Chunk, Document
 
 
-def chunk_document(document: Document, target_words: int = 180, overlap_words: int = 35) -> list[Chunk]:
+def chunk_document(document: Document, target_words: int = 110, overlap_words: int = 20) -> list[Chunk]:
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n", document.text) if p.strip()]
     groups: list[str] = []
     current: list[str] = []
@@ -39,7 +39,8 @@ def chunk_document(document: Document, target_words: int = 180, overlap_words: i
                 source_url=document.source_url,
                 category=document.category,
                 ordinal=ordinal,
+                retrieved_at=document.retrieved_at,
+                source_type=document.source_type,
             )
         )
     return chunks
-

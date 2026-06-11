@@ -1,0 +1,12 @@
+[
+  {"id":"old-dubai","title":"Old Dubai","category":"culture","url":"https://www.visitdubai.com/en/places-to-visit/old-dubai"},
+  {"id":"transport","title":"Getting around Dubai","category":"transport","url":"https://www.visitdubai.com/en/articles/getting-around-dubai"},
+  {"id":"desert","title":"Desert safaris in Dubai","category":"nature","url":"https://www.visitdubai.com/en/articles/desert-safaris-in-dubai"},
+  {"id":"beaches","title":"Best beaches in Dubai","category":"beaches","url":"https://www.visitdubai.com/en/articles/best-beaches-in-dubai"},
+  {"id":"families","title":"Family activities","category":"family","url":"https://www.visitdubai.com/en/things-to-do/family"},
+  {"id":"food","title":"Dubai food guide","category":"food","url":"https://www.visitdubai.com/en/articles/dubai-food-guide"},
+  {"id":"practical","title":"Plan your Dubai trip","category":"practical","url":"https://www.visitdubai.com/en/plan-your-trip"},
+  {"id":"marina","title":"Dubai Marina","category":"neighbourhoods","url":"https://www.visitdubai.com/en/explore-dubai/dubai-neighbourhoods/dubai-marina"},
+  {"id":"hatta","title":"Hatta","category":"nature","url":"https://www.visitdubai.com/en/explore-dubai/dubai-neighbourhoods/hatta"},
+  {"id":"palm","title":"Palm Jumeirah","category":"landmarks","url":"https://www.visitdubai.com/en/explore-dubai/dubai-neighbourhoods/palm-jumeirah"}
+]

@@ -1,0 +1,16 @@
+{"query":"How do I use metro, tram and nol cards without renting a car?","expected_sources":["transport"]}
+{"query":"I want wind towers, an abra and traditional markets","expected_sources":["old-dubai"]}
+{"query":"Where should I stay for skyscrapers, Dubai Mall and Burj Khalifa?","expected_sources":["downtown"]}
+{"query":"Is dune bashing appropriate for someone with back pain?","expected_sources":["desert"]}
+{"query":"Which beach area has watersports and a running track?","expected_sources":["beaches"]}
+{"query":"Build a relaxed two day plan for parents with young children","expected_sources":["families"]}
+{"query":"What Emirati foods such as machboos and luqaimat should I try?","expected_sources":["food"]}
+{"query":"What plug type, currency and clothing should I know about?","expected_sources":["practical"]}
+{"query":"Where can I walk around yachts, towers and JBR?","expected_sources":["marina"]}
+{"query":"Can I take a mountain day trip for hiking and kayaking?","expected_sources":["hatta"]}
+{"query":"Compare traditional souks with large air conditioned malls","expected_sources":["shopping"]}
+{"query":"What should a wheelchair user verify before booking attractions?","expected_sources":["accessible"]}
+{"query":"Plan a visit to Palm Jumeirah with coastal views","expected_sources":["palm"]}
+{"query":"Advice for a woman exploring Dubai alone","expected_sources":["solo-travel"]}
+{"query":"Where can I experience evening dining and licensed nightlife?","expected_sources":["evenings"]}
+{"query":"Give me a geographically efficient first time three day itinerary","expected_sources":["itineraries"]}

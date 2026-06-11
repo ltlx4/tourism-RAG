@@ -5,7 +5,10 @@ services:
       - "8000:8000"
     environment:
       RAG_LLM_BASE_URL: http://host.docker.internal:11434
-      RAG_EMBEDDING_PROVIDER: hash
+      RAG_LLM_MODEL: qwen3.5:4b
+      RAG_EMBEDDING_PROVIDER: ollama
+      RAG_EMBEDDING_MODEL: nomic-embed-text
+      RAG_EMBEDDING_BASE_URL: http://host.docker.internal:11434
     volumes:
       - rag-index:/app/data/index
     extra_hosts:
@@ -13,4 +16,3 @@ services:
 
 volumes:
   rag-index:
-

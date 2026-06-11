@@ -20,10 +20,13 @@ def retriever(tmp_path: Path) -> HybridRetriever:
 @pytest.mark.parametrize(
     ("query", "expected_source"),
     [
-        ("How can I travel around without a car?", "transport"),
+        ("How can I use the Metro, tram, buses and taxis?", "transport"),
         ("Plan an afternoon in the spice and gold souks", "old-dubai"),
         ("What should a family do with young children?", "families"),
         ("Is dune driving suitable with back problems?", "desert"),
+        ("Where can I see yachts and walk around JBR?", "marina"),
+        ("I need step-free wheelchair access", "accessible"),
+        ("Can I hike and kayak in the mountains?", "hatta"),
     ],
 )
 def test_retrieval_finds_relevant_source(
@@ -37,4 +40,3 @@ def test_results_include_citation_metadata(retriever: HybridRetriever):
     result = retriever.search("Dubai Creek abra")[0].chunk
     assert result.title
     assert result.source_url.startswith("https://")
-

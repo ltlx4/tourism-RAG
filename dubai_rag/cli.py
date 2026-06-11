@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
 from .config import Settings
 from .ingest import ingest_directory
 from .providers import build_embeddings, build_llm
 from .retrieval import HybridRetriever
 from .service import RAGService
+from .sources import sync_sources
 from .store import ChunkStore
 
 
@@ -15,9 +17,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="dubai-rag")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("ingest", help="Rebuild the local search index")
+    sync = subparsers.add_parser("sync-sources", help="Snapshot official source pages")
+    sync.add_argument("--manifest", default="data/sources.json")
+    sync.add_argument("--output", default="data/snapshots")
     ask = subparsers.add_parser("ask", help="Ask a question from the terminal")
     ask.add_argument("question")
     args = parser.parse_args()
+
+    if args.command == "sync-sources":
+        report = sync_sources(Path(args.manifest), Path(args.output))
+        print(json.dumps(report, indent=2))
+        return
 
     settings = Settings.from_env()
     store = ChunkStore(settings.database_path)
@@ -39,4 +49,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

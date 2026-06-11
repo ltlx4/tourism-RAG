@@ -4,12 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dubai-tourism-rag"
-version = "0.1.0"
+version = "0.2.0"
 description = "An Ollama-first, hybrid RAG assistant for planning Dubai trips"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115,<1",
+  "numpy>=2.0,<3",
   "uvicorn[standard]>=0.34,<1",
 ]
 
@@ -22,6 +23,7 @@ dev = [
 
 [project.scripts]
 dubai-rag = "dubai_rag.cli:main"
+dubai-rag-eval = "dubai_rag.evaluation:main"
 
 [tool.setuptools.packages.find]
 include = ["dubai_rag*"]
@@ -32,4 +34,3 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-

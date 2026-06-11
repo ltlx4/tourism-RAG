@@ -9,6 +9,17 @@ from .store import ChunkStore
 
 
 class HybridRetriever:
+    _TITLE_STOPWORDS = {
+        "and",
+        "the",
+        "in",
+        "of",
+        "with",
+        "dubai",
+        "travel",
+        "guide",
+    }
+
     def __init__(
         self,
         store: ChunkStore,
@@ -29,32 +40,70 @@ class HybridRetriever:
         lexical = self.store.lexical_search(query, self.candidate_k)
         vector = self.embeddings.embed([query])[0]
         semantic = self.store.semantic_search(vector, self.candidate_k)
+        query_terms = set(re.findall(r"[\w']+", query.lower()))
 
         fused: dict[str, SearchResult] = {}
+        lexical_bonus: dict[str, float] = {}
+        semantic_bonus: dict[str, float] = {}
+        lexical_max = max((result.score for result in lexical), default=1.0)
+        semantic_max = max((max(result.score, 0) for result in semantic), default=1.0)
         for rank, result in enumerate(lexical, 1):
             item = fused.setdefault(
                 result.chunk.chunk_id, SearchResult(chunk=result.chunk, score=0.0)
             )
             item.score += 1 / (60 + rank)
             item.lexical_rank = rank
+            lexical_bonus[result.chunk.source_id] = max(
+                lexical_bonus.get(result.chunk.source_id, 0),
+                0.01 * result.score / lexical_max,
+            )
         for rank, result in enumerate(semantic, 1):
             item = fused.setdefault(
                 result.chunk.chunk_id, SearchResult(chunk=result.chunk, score=0.0)
             )
             item.score += 1 / (60 + rank)
             item.semantic_rank = rank
+            semantic_bonus[result.chunk.source_id] = max(
+                semantic_bonus.get(result.chunk.source_id, 0),
+                max(0, 0.005 * result.score / semantic_max),
+            )
+
+        for result in fused.values():
+            result.score += lexical_bonus.get(
+                result.chunk.source_id, 0
+            ) + semantic_bonus.get(result.chunk.source_id, 0)
+            title_terms = {
+                term
+                for term in re.findall(r"[\w']+", result.chunk.title.lower())
+                if term not in self._TITLE_STOPWORDS
+            }
+            if title_terms & query_terms:
+                result.score += 0.006
 
         candidates = sorted(fused.values(), key=lambda item: item.score, reverse=True)[
             : self.candidate_k
         ]
         if self.enable_rerank and self.llm and candidates:
             candidates = self._rerank(query, candidates)
-        return candidates[: self.top_k]
+        return self._diversify(candidates)[: self.top_k]
+
+    @staticmethod
+    def _diversify(candidates: list[SearchResult]) -> list[SearchResult]:
+        seen: set[str] = set()
+        unique = []
+        duplicates = []
+        for candidate in candidates:
+            if candidate.chunk.source_id in seen:
+                duplicates.append(candidate)
+            else:
+                seen.add(candidate.chunk.source_id)
+                unique.append(candidate)
+        return unique + duplicates
 
     def _rerank(self, query: str, candidates: list[SearchResult]) -> list[SearchResult]:
         snippets = [
-            {"id": result.chunk.chunk_id, "text": result.chunk.text[:700]}
-            for result in candidates[:12]
+            {"id": result.chunk.chunk_id, "text": result.chunk.text[:500]}
+            for result in candidates[:8]
         ]
         prompt = (
             "Score each passage's relevance to the travel question from 0 to 10. "
@@ -63,7 +112,7 @@ class HybridRetriever:
         )
         try:
             response = self.llm.chat([{"role": "user", "content": prompt}], temperature=0)
-            match = re.search(r"\{.*\}", response, re.DOTALL)
+            match = re.search(r"\{[^{}]*\}", response, re.DOTALL)
             scores = json.loads(match.group(0)) if match else {}
             for result in candidates:
                 result.rerank_score = float(scores.get(result.chunk.chunk_id, 0))
@@ -74,4 +123,3 @@ class HybridRetriever:
             )
         except (ProviderError, ValueError, TypeError, json.JSONDecodeError):
             return candidates
-

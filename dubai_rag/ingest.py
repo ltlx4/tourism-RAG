@@ -27,6 +27,8 @@ def _parse_markdown(path: Path) -> Document:
         text=body.strip(),
         source_url=metadata.get("source_url", ""),
         category=metadata.get("category", "general"),
+        retrieved_at=metadata.get("retrieved_at", ""),
+        source_type=metadata.get("source_type", "curated"),
     )
 
 
@@ -37,5 +39,6 @@ def ingest_directory(path: Path, store: ChunkStore, embeddings: EmbeddingProvide
     for chunk, vector in zip(chunks, vectors):
         chunk.embedding = vector
     store.replace_all(chunks)
+    store.set_metadata("embedding_provider", embeddings.name)
+    store.set_metadata("embedding_dimensions", str(len(vectors[0]) if vectors else 0))
     return len(chunks)
-

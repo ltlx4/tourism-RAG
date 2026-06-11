@@ -59,7 +59,8 @@ async function ask(question){
     pending.textContent=data.answer;
     const sources=document.createElement("div");sources.className="sources";
     sources.innerHTML="<strong>Sources</strong><br>"+data.sources.map(s =>
-      s.url?`[${s.id}] <a href="${s.url}" target="_blank" rel="noreferrer">${s.title}</a>`:`[${s.id}] ${s.title}`).join("<br>");
+      s.url?`[${s.id}] <a href="${s.url}" target="_blank" rel="noreferrer">${s.title}</a>`:`[${s.id}] ${s.title}`).join("<br>")+
+      `<br><small>Retrieved in ${Math.round(data.timings_ms.retrieval)} ms · Generated in ${(data.timings_ms.generation/1000).toFixed(1)} s · Citation coverage ${Math.round(data.citation_metrics.sentence_coverage*100)}%</small>`;
     chat.append(sources); history.push({role:"user",content:question},{role:"assistant",content:data.answer});
     while(history.length>6) history.shift();
   } catch(error){pending.textContent=`Could not answer: ${error.message}`;}

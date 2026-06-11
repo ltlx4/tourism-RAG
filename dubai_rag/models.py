@@ -10,6 +10,8 @@ class Document:
     text: str
     source_url: str = ""
     category: str = "general"
+    retrieved_at: str = ""
+    source_type: str = "curated"
 
 
 @dataclass
@@ -21,6 +23,8 @@ class Chunk:
     source_url: str
     category: str
     ordinal: int
+    retrieved_at: str = ""
+    source_type: str = "curated"
     embedding: list[float] = field(default_factory=list)
 
 
@@ -31,4 +35,3 @@ class SearchResult:
     lexical_rank: int | None = None
     semantic_rank: int | None = None
     rerank_score: float | None = None
-
